@@ -53,6 +53,8 @@ Cleanup test resources
     Run Keyword And Ignore Error    common_keywords.cleanup_storageclasses
     Run Keyword And Ignore Error    common_keywords.cleanup_networks
     Run Keyword And Ignore Error    common_keywords.cleanup_backups
+    Run Keyword And Ignore Error    common_keywords.cleanup_namespaces
+    Run Keyword And Ignore Error    common_keywords.cleanup_projects
 
 Common Suite Teardown
     Run Keyword If All Tests Passed    Cleanup test resources

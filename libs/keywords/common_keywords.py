@@ -88,6 +88,16 @@ class common_keywords:
         net.cleanup_vlan_configs()
         net.cleanup_cluster_networks()
 
+    def cleanup_namespaces(self):
+        """Cleanup namespaces"""
+        from namespace import Namespace
+        Namespace().cleanup()
+
+    def cleanup_projects(self):
+        """Cleanup projects"""
+        from project import Project
+        Project().cleanup()
+
     def cleanup_backups(self):
         """Cleanup backups"""
         logging('Cleanup backups requested')

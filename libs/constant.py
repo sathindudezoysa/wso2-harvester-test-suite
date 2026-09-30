@@ -183,6 +183,22 @@ runcmd:
 # RKE2 Kubernetes versions (defaults)
 DEFAULT_RKE2_VERSION = "v1.33"
 
+# Tenancy (Rancher Projects / Namespaces on the Harvester local cluster)
+LOCAL_CLUSTER_ID = "local"
+PROJECT_PLURAL = "projects"
+PROJECT_ID_PREFIX = "p-"
+# Namespace <-> project binding and per-namespace quota (Rancher conventions)
+ANNOT_PROJECT_ID = "field.cattle.io/projectId"
+LABEL_PROJECT_ID = "field.cattle.io/projectId"
+ANNOT_RESOURCE_QUOTA = "field.cattle.io/resourceQuota"
+# Rancher quota keys used for CPU / memory limits
+QUOTA_LIMITS_CPU = "limitsCpu"
+QUOTA_LIMITS_MEMORY = "limitsMemory"
+# Namespace phases
+NAMESPACE_PHASE_ACTIVE = "Active"
+NAMESPACE_PHASE_TERMINATING = "Terminating"
+
+
 # Rancher API groups and versions
 RANCHER_MGMT_GROUP = "management.cattle.io"
 RANCHER_MGMT_VERSION = "v3"
