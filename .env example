@@ -1,0 +1,22 @@
+# Kubernetes configuration (for CRD strategy)
+export KUBECONFIG=
+export HARVESTER_OPERATION_STRATEGY=
+
+# # Harvester cluster info (optional for CRD, required for REST)
+export HARVESTER_ENDPOINT=
+export RANCHER_API_KEY=
+export OPENSUSE_IMAGE_URL=
+export UBUNTU_IMAGE_URL=
+# export HARVESTER_USERNAME="admin"
+# export HARVESTER_PASSWORD="your-password"
+
+export RANCHER_ENDPOINT=
+
+export EXISTING_HARVESTER_NAME=
+export EXISTING_IMAGE=
+export EXISTING_NETWORK=
+
+
+# Test configuration
+export WAIT_TIMEOUT=600
+
