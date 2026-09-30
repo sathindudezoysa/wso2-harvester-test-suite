@@ -9,7 +9,7 @@ from utility.utility import (
     logging, get_harvester_api_client, get_retry_count_and_interval
 )
 from constant import (
-    LOCAL_CLUSTER_ID, LABEL_TEST, LABEL_TEST_VALUE, DEFAULT_TIMEOUT,
+    EXISTING_HARVESTER_NAME, LABEL_TEST, LABEL_TEST_VALUE, DEFAULT_TIMEOUT,
 )
 from project.base import Base
 
@@ -65,7 +65,7 @@ class Rest(Base):
                 else self._message(data)}
 
     def list(self, label_selector=None):
-        code, data = self.api.get(f"{PROJECTS_PATH}/{LOCAL_CLUSTER_ID}")
+        code, data = self.api.get(f"{PROJECTS_PATH}/{EXISTING_HARVESTER_NAME}")
         assert code == 200, f"Failed to list projects: {code}, {data}"
         items = data.get("data", [])
 
@@ -128,7 +128,7 @@ class Rest(Base):
         project_id = project["metadata"]["name"]
         logging(f"Deleting project '{display_name}' ({project_id})")
         code, data = self.api.delete(
-            f"{PROJECTS_PATH}/{LOCAL_CLUSTER_ID}/{project_id}"
+            f"{PROJECTS_PATH}/{EXISTING_HARVESTER_NAME}/{project_id}"
         )
         assert code in (200, 204, 404), \
             f"Failed to delete project '{display_name}': {code}, {data}"
@@ -139,7 +139,7 @@ class Rest(Base):
             return {"success": False, "code": 404,
                     "message": f"NotFound: project '{display_name}'"}
         code, data = self.api.delete(
-            f"{PROJECTS_PATH}/{LOCAL_CLUSTER_ID}/"
+            f"{PROJECTS_PATH}/{EXISTING_HARVESTER_NAME}/"
             f"{project['metadata']['name']}"
         )
         return {"success": code in (200, 204), "code": code,

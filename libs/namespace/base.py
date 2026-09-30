@@ -11,7 +11,7 @@ import json
 from abc import ABC, abstractmethod
 
 from constant import (
-    LOCAL_CLUSTER_ID, LABEL_TEST, LABEL_TEST_VALUE,
+    EXISTING_HARVESTER_NAME, LABEL_TEST, LABEL_TEST_VALUE,
     ANNOT_PROJECT_ID, LABEL_PROJECT_ID, ANNOT_RESOURCE_QUOTA,
     QUOTA_LIMITS_CPU, QUOTA_LIMITS_MEMORY, NAMESPACE_PHASE_ACTIVE,
 )
@@ -37,7 +37,7 @@ class Base(ABC):
 
         if project_id:
             labels[LABEL_PROJECT_ID] = project_id
-            annotations[ANNOT_PROJECT_ID] = f"{LOCAL_CLUSTER_ID}:{project_id}"
+            annotations[ANNOT_PROJECT_ID] = f"{EXISTING_HARVESTER_NAME}:{project_id}"
 
         limit = {}
         if cpu_limit not in (None, ""):

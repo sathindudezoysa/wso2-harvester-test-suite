@@ -10,7 +10,7 @@ address it by spec.displayName, so every operation here takes the display name.
 from abc import ABC, abstractmethod
 
 from constant import (
-    LOCAL_CLUSTER_ID, LABEL_TEST, LABEL_TEST_VALUE,
+    EXISTING_HARVESTER_NAME, LABEL_TEST, LABEL_TEST_VALUE,
     QUOTA_LIMITS_CPU, QUOTA_LIMITS_MEMORY, PROJECT_ID_PREFIX,
 )
 
@@ -52,7 +52,7 @@ class Base(ABC):
         )
 
         spec = {
-            "clusterName": LOCAL_CLUSTER_ID,
+            "clusterName": EXISTING_HARVESTER_NAME,
             "displayName": display_name,
             "containerDefaultResourceLimit": {},
             "namespaceDefaultResourceQuota": {"limit": ns_default_limit},
@@ -66,7 +66,7 @@ class Base(ABC):
             "kind": "Project",
             "metadata": {
                 "generateName": PROJECT_ID_PREFIX,
-                "namespace": LOCAL_CLUSTER_ID,
+                "namespace": EXISTING_HARVESTER_NAME,
                 "labels": {LABEL_TEST: LABEL_TEST_VALUE},
             },
             "spec": spec,
