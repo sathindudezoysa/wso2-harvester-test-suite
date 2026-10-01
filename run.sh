@@ -136,7 +136,7 @@ fi
 
 
 # Set Python path (../apiclient provides the shared harvester_api package)
-export PYTHONPATH="${PYTHONPATH}:$(pwd)/libs:$(pwd)/../apiclient"
+export PYTHONPATH="${PYTHONPATH}:$(pwd)/libs:$(pwd)/apiclient:$(pwd)/../apiclient"
 
 # Operation strategy (crd|rest). Read at library import time, so export before robot starts.
 [ -n "$STRATEGY" ] && export HARVESTER_OPERATION_STRATEGY="$STRATEGY"

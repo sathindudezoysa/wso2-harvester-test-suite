@@ -11,7 +11,8 @@ from abc import ABC, abstractmethod
 
 from constant import (
     EXISTING_HARVESTER_NAME, LABEL_TEST, LABEL_TEST_VALUE,
-    QUOTA_LIMITS_CPU, QUOTA_LIMITS_MEMORY, PROJECT_ID_PREFIX,
+    LOCAL_CLUSTER_ID, QUOTA_LIMITS_CPU, QUOTA_LIMITS_MEMORY,
+    PROJECT_ID_PREFIX,
 )
 
 
@@ -66,7 +67,7 @@ class Base(ABC):
             "kind": "Project",
             "metadata": {
                 "generateName": PROJECT_ID_PREFIX,
-                "namespace": EXISTING_HARVESTER_NAME,
+                "namespace": LOCAL_CLUSTER_ID,
                 "labels": {LABEL_TEST: LABEL_TEST_VALUE},
             },
             "spec": spec,

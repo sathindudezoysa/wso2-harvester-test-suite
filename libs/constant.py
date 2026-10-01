@@ -2,6 +2,7 @@
 Constants for Harvester test framework
 """
 
+import os
 from enum import Enum
 
 
@@ -185,6 +186,9 @@ DEFAULT_RKE2_VERSION = "v1.33"
 
 # Tenancy (Rancher Projects / Namespaces on the Harvester local cluster)
 LOCAL_CLUSTER_ID = "local"
+EXISTING_HARVESTER_NAME = os.getenv(
+  "EXISTING_HARVESTER_NAME", LOCAL_CLUSTER_ID
+)
 PROJECT_PLURAL = "projects"
 PROJECT_ID_PREFIX = "p-"
 # Namespace <-> project binding and per-namespace quota (Rancher conventions)

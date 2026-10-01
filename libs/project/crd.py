@@ -10,7 +10,7 @@ from kubernetes.client.rest import ApiException
 from crd import create_cr, delete_cr, list_cr
 from constant import (
     RANCHER_MGMT_GROUP, RANCHER_MGMT_VERSION, PROJECT_PLURAL,
-    EXISTING_HARVESTER_NAME, LABEL_TEST, LABEL_TEST_VALUE, DEFAULT_TIMEOUT,
+    LOCAL_CLUSTER_ID, LABEL_TEST, LABEL_TEST_VALUE, DEFAULT_TIMEOUT,
 )
 from project.base import Base
 from utility.utility import logging, get_retry_count_and_interval
@@ -35,7 +35,7 @@ class CRD(Base):
             obj = create_cr(
                 group=RANCHER_MGMT_GROUP,
                 version=RANCHER_MGMT_VERSION,
-                namespace=EXISTING_HARVESTER_NAME,
+                namespace=LOCAL_CLUSTER_ID,
                 plural=PROJECT_PLURAL,
                 body=body
             )
@@ -59,7 +59,7 @@ class CRD(Base):
             create_cr(
                 group=RANCHER_MGMT_GROUP,
                 version=RANCHER_MGMT_VERSION,
-                namespace=EXISTING_HARVESTER_NAME,
+                namespace=LOCAL_CLUSTER_ID,
                 plural=PROJECT_PLURAL,
                 body=body
             )
@@ -74,7 +74,7 @@ class CRD(Base):
         return list_cr(
             group=RANCHER_MGMT_GROUP,
             version=RANCHER_MGMT_VERSION,
-            namespace=EXISTING_HARVESTER_NAME,
+            namespace=LOCAL_CLUSTER_ID,
             plural=PROJECT_PLURAL,
             label_selector=label_selector
         ).get("items", [])
@@ -134,7 +134,7 @@ class CRD(Base):
             delete_cr(
                 group=RANCHER_MGMT_GROUP,
                 version=RANCHER_MGMT_VERSION,
-                namespace=EXISTING_HARVESTER_NAME,
+                namespace=LOCAL_CLUSTER_ID,
                 plural=PROJECT_PLURAL,
                 name=project_id
             )
@@ -154,7 +154,7 @@ class CRD(Base):
             delete_cr(
                 group=RANCHER_MGMT_GROUP,
                 version=RANCHER_MGMT_VERSION,
-                namespace=EXISTING_HARVESTER_NAME,
+                namespace=LOCAL_CLUSTER_ID,
                 plural=PROJECT_PLURAL,
                 name=project["metadata"]["name"]
             )

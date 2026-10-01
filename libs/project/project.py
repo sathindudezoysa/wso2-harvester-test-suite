@@ -1,31 +1,16 @@
 """
-Project Component - delegates to CRD or REST implementation
-
-The implementation is selected based on the HARVESTER_OPERATION_STRATEGY
-environment variable. Valid values are 'crd' or 'rest'. Defaults to 'crd'.
+Project Component - delegates to the Rancher REST implementation.
 """
-import os
-
-from constant import HarvesterOperationStrategy, DEFAULT_TIMEOUT
+from constant import DEFAULT_TIMEOUT
 from project.rest import Rest
-from project.crd import CRD
 from project.base import Base
 
 
 class Project(Base):
-    """Project component - selects implementation by HARVESTER_OPERATION_STRATEGY"""
+    """Project component backed by Rancher's v3 Project API."""
 
     def __init__(self):
-        strategy_str = os.getenv("HARVESTER_OPERATION_STRATEGY", "crd").lower()
-        try:
-            self._strategy = HarvesterOperationStrategy(strategy_str)
-        except ValueError:
-            self._strategy = HarvesterOperationStrategy.CRD
-
-        if self._strategy == HarvesterOperationStrategy.REST:
-            self.project = Rest()
-        else:
-            self.project = CRD()
+        self.project = Rest()
 
     def create(self, display_name, cpu_limit=None, memory_limit=None,
                ns_default_cpu=None, ns_default_memory=None,

@@ -4,17 +4,17 @@ Uses get_harvester_api_client() for every call.
 """
 import time
 from datetime import datetime, timedelta
+from urllib.parse import urlsplit
 
 from utility.utility import (
     logging, get_harvester_api_client, get_retry_count_and_interval
 )
 from constant import (
-    EXISTING_HARVESTER_NAME, LABEL_TEST, LABEL_TEST_VALUE, DEFAULT_TIMEOUT,
+    LABEL_TEST, LABEL_TEST_VALUE, DEFAULT_TIMEOUT,
 )
 from project.base import Base
 
-PROJECTS_PATH = "v1/management.cattle.io.projects"
-PROJECT_TYPE = "management.cattle.io.project"
+PROJECTS_PATH = "/v3/projects"
 
 
 class Rest(Base):
@@ -22,6 +22,7 @@ class Rest(Base):
 
     def __init__(self):
         self.retry_count, self.retry_interval = get_retry_count_and_interval()
+        self.rancher = None
 
     @property
     def api(self):
@@ -33,41 +34,100 @@ class Rest(Base):
             return data.get("message") or str(data)
         return str(data)
 
-    def create(self, display_name, cpu_limit=None, memory_limit=None,
-               ns_default_cpu=None, ns_default_memory=None,
-               description=None):
-        body = self.build_manifest(
+    def _cluster_id(self):
+        path = urlsplit(self.api.endpoint).path
+        marker = "/k8s/clusters/"
+        if marker not in path:
+            raise ValueError(
+                "Harvester endpoint must include /k8s/clusters/{cluster_id}"
+            )
+        return path.split(marker, 1)[1].split("/", 1)[0]
+
+    def _rancher_request(self, method, path, data=None):
+        if self.rancher is None:
+            from rancher.rest import Rest as RancherRest
+            self.rancher = RancherRest()
+        return self.rancher._rancher_request(method, path, data)
+
+    def _build_payload(self, display_name, cpu_limit=None, memory_limit=None,
+                       ns_default_cpu=None, ns_default_memory=None,
+                       description=None):
+        manifest = self.build_manifest(
             display_name, cpu_limit, memory_limit,
             ns_default_cpu, ns_default_memory, description
         )
-        body["type"] = PROJECT_TYPE
+        spec = manifest["spec"]
+        payload = {
+            "type": "project",
+            "clusterId": self._cluster_id(),
+            "name": display_name,
+            "containerDefaultResourceLimit": spec[
+                "containerDefaultResourceLimit"
+            ],
+            "namespaceDefaultResourceQuota": spec[
+                "namespaceDefaultResourceQuota"
+            ],
+            "resourceQuota": spec["resourceQuota"],
+            "labels": manifest["metadata"]["labels"],
+        }
+        if description:
+            payload["description"] = description
+        return payload
+
+    @staticmethod
+    def _normalize_project(project):
+        project_id = project.get("id", "").rsplit(":", 1)[-1]
+        return {
+            "metadata": {
+                "name": project_id,
+                "labels": project.get("labels", {}) or {},
+                "state": {"name": project.get("state", "")},
+                "deletionTimestamp": project.get("deletionTimestamp"),
+            },
+            "spec": {
+                "displayName": project.get("name", ""),
+                "resourceQuota": project.get("resourceQuota", {}) or {},
+            },
+        }
+
+    def create(self, display_name, cpu_limit=None, memory_limit=None,
+               ns_default_cpu=None, ns_default_memory=None,
+               description=None):
+        body = self._build_payload(
+            display_name, cpu_limit, memory_limit,
+            ns_default_cpu, ns_default_memory, description
+        )
 
         logging(f"Creating project '{display_name}' via REST "
                 f"(cpu={cpu_limit}, memory={memory_limit})")
-        code, data = self.api.post(PROJECTS_PATH, data=body)
+        code, data = self._rancher_request("POST", PROJECTS_PATH, body)
         assert code in (200, 201), \
             f"Failed to create project '{display_name}': {code}, {data}"
 
-        project_id = data["metadata"]["name"]
+        project_id = data.get("id", "").rsplit(":", 1)[-1]
+        if not project_id:
+            project_id = data["metadata"]["name"]
         logging(f"Created project '{display_name}': {project_id}")
         return project_id
 
     def try_create(self, display_name, cpu_limit=None, memory_limit=None,
                    ns_default_cpu=None, ns_default_memory=None):
-        body = self.build_manifest(
+        body = self._build_payload(
             display_name, cpu_limit, memory_limit,
             ns_default_cpu, ns_default_memory
         )
-        body["type"] = PROJECT_TYPE
-        code, data = self.api.post(PROJECTS_PATH, data=body)
+        code, data = self._rancher_request("POST", PROJECTS_PATH, body)
         return {"success": code in (200, 201), "code": code,
                 "message": "" if code in (200, 201)
                 else self._message(data)}
 
     def list(self, label_selector=None):
-        code, data = self.api.get(f"{PROJECTS_PATH}/{EXISTING_HARVESTER_NAME}")
+        code, data = self._rancher_request(
+            "GET", f"{PROJECTS_PATH}?clusterId={self._cluster_id()}"
+        )
         assert code == 200, f"Failed to list projects: {code}, {data}"
-        items = data.get("data", [])
+        items = [self._normalize_project(item)
+                 for item in data.get("data", [])]
 
         if label_selector:
             key, _, value = label_selector.partition("=")
@@ -127,9 +187,8 @@ class Rest(Base):
             return
         project_id = project["metadata"]["name"]
         logging(f"Deleting project '{display_name}' ({project_id})")
-        code, data = self.api.delete(
-            f"{PROJECTS_PATH}/{EXISTING_HARVESTER_NAME}/{project_id}"
-        )
+        project_path = f"{PROJECTS_PATH}/{self._cluster_id()}:{project_id}"
+        code, data = self._rancher_request("DELETE", project_path)
         assert code in (200, 204, 404), \
             f"Failed to delete project '{display_name}': {code}, {data}"
 
@@ -138,9 +197,9 @@ class Rest(Base):
         if project is None:
             return {"success": False, "code": 404,
                     "message": f"NotFound: project '{display_name}'"}
-        code, data = self.api.delete(
-            f"{PROJECTS_PATH}/{EXISTING_HARVESTER_NAME}/"
-            f"{project['metadata']['name']}"
+        project_id = project["metadata"]["name"]
+        code, data = self._rancher_request(
+            "DELETE", f"{PROJECTS_PATH}/{self._cluster_id()}:{project_id}"
         )
         return {"success": code in (200, 204), "code": code,
                 "message": "" if code in (200, 204)
